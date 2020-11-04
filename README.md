@@ -17,8 +17,6 @@ _Unfortunately there is no INSPIRE linkage checker API available at the moment. 
 ```bash
 Usage: linkage-checker [OPTIONS]
 
-  Geopackage validator validating a local file or from s3 storage
-
 Options:
   --enable-caching                Cache the NGR records in a local
                                   json file (useful for debugging
