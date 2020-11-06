@@ -2,7 +2,7 @@ NGR_BASE_URL = "https://nationaalgeoregister.nl/geonetwork"
 NGR_UUID_URL = "https://www.nationaalgeoregister.nl/geonetwork/srv/dut/xml.metadata.get?uuid="
 
 CACHE_FILENAME = "../ngr_records_cache.json"
-CACHE_EXPIRATION_IN_SECONDS = 86400  # is 1 day
+CACHE_EXPIRATION_IN_SECONDS = 604800  # is 7 days
 
 REQUEST_HEADERS = {
     'User-Agent': 'pdok.nl (linkage-checker)'
