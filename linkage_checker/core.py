@@ -1,6 +1,7 @@
 import json
 import logging
 from datetime import datetime
+from pathlib import Path
 
 from selenium import webdriver
 from selenium.webdriver import DesiredCapabilities
@@ -10,7 +11,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from linkage_checker.constants import NGR_UUID_URL, BROWSER_SCREENSHOT_PATH, LINKAGE_CHECKER_URL, \
     REMOTE_WEBDRIVER_CONNECTION_URL
-from linkage_checker.domain.ngr import get_all_ngr_records
+from linkage_checker.ngr import get_all_ngr_records
 
 logger = logging.getLogger(__name__)
 
@@ -186,9 +187,7 @@ def write_output(output_path, start_time, results):
 
     if output_path is not None:
         # write json output to file
-        f = open(output_path, "w")
-        f.write(json_output)
-        f.close()
+        Path(output_path).write_text(json_output)
     else:
         # write json output to console
         print(json_output)
