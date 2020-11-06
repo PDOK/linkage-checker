@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
@@ -8,15 +9,17 @@ import requests
 from linkage_checker.constants import CACHE_FILENAME, CACHE_EXPIRATION_IN_SECONDS, REQUEST_HEADERS, \
     NAMESPACE_PREFIXES, NGR_BASE_URL
 
+logger = logging.getLogger(__name__)
 
-def get_all_ngr_records(logger, enable_caching):
+
+def get_all_ngr_records(enable_caching):
     # if there is no cache file or it is expired, create it. otherwise read the cache file
-    if not os.path.isfile(CACHE_FILENAME) or __cache_is_expired() or not enable_caching:
+    if not os.path.isfile(CACHE_FILENAME) or cache_is_expired() or not enable_caching:
         logger.debug("downloading ngr record data...")
-        ngr_records = __get_all_ngr_records(logger)
+        ngr_records = __get_all_ngr_records()
         ngr_records_to_remove = []
         for ngr_record in ngr_records:
-            record_info = __get_record_info(logger, ngr_record['uuid_dataset'])
+            record_info = get_ngr_record_info(ngr_record['uuid_dataset'])
             if len(record_info) != 2:
                 ngr_records_to_remove.append(ngr_record)
             else:
@@ -37,14 +40,14 @@ def get_all_ngr_records(logger, enable_caching):
     return ngr_records
 
 
-def __cache_is_expired():
+def cache_is_expired():
     file_mod_time = datetime.fromtimestamp(os.stat(CACHE_FILENAME).st_mtime)  # This is a datetime.datetime object!
     now = datetime.today()
     max_delay = timedelta(seconds=CACHE_EXPIRATION_IN_SECONDS)
     return now - file_mod_time > max_delay
 
 
-def __get_all_ngr_records(logger):
+def __get_all_ngr_records():
     ngr_records = []
 
     debug_search = ""
@@ -81,7 +84,7 @@ def __get_all_ngr_records(logger):
     return ngr_records
 
 
-def __get_record_info(logger, uuid_dataset):
+def get_ngr_record_info(uuid_dataset):
     result = {}
 
     record_info_base_url = NGR_BASE_URL + "/srv/api/0.1/records/" + uuid_dataset + "/related?type=services&start=1&rows=100"

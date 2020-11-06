@@ -1,5 +1,5 @@
 # linkage-checker
-Python wrapper that runs the [INSPIRE linkage checker](https://inspire-geoportal.ec.europa.eu/linkagechecker.html) and aggregates the results.
+Python wrapper that runs the [INSPIRE linkage checker](https://inspire-geoportal.ec.europa.eu/linkagechecker.html) and aggregates the results. _This is a proof of concept. It is tested with the INSPIRE linkage checker version: [1.4.0](https://inspire-geoportal.ec.europa.eu/release-notes.html)_
 
 # Usage
 At this moment, the linkage-checker uses a [selenium docker image](https://github.com/SeleniumHQ/docker-selenium) for using and running the INSPIRE linkage checker.
@@ -10,7 +10,7 @@ docker run --rm -p 4444:4444 -v /dev/shm:/dev/shm selenium/standalone-firefox:3.
 ```
 Now the linkage-checker can be used and started with a command.
 
-_Unfortunately there is no INSPIRE linkage checker API available at the moment. Therefore, it is being investigated whether this way (using selenium) can be replaced by running the INSPIRE linkage checker only via http requests (which is faster, more stable and more efficient - think of execution speed and memory usage), so that the use of a selenium container is no longer necessary._
+_Unfortunately there is no INSPIRE linkage checker API available at the moment. Therefore, it is being investigated whether this way (using selenium) can be replaced by running the INSPIRE linkage checker only via http requests (which is faster, more stable and more efficient - in terms of execution speed and memory usage), so that the use of a selenium container is no longer necessary._
 
 ## Commands
 
@@ -18,6 +18,9 @@ _Unfortunately there is no INSPIRE linkage checker API available at the moment. 
 Usage: linkage-checker [OPTIONS]
 
 Options:
+  --output-path PATH              Path to a json file where the linkage
+                                  checker results will be stored.
+
   --enable-caching                Cache the NGR records in a local
                                   json file (useful for debugging
                                   purposes).
@@ -35,10 +38,10 @@ Examples:
 
 Normal run:
 ```bash
-pipenv run linkage-checker
+pipenv run linkage-checker --output-path /example/results.json
 ```
 
-With debugging functionalities enabled:
+With some debugging functionalities enabled:
 ```bash
 pipenv run linkage-checker --enable-caching --browser-screenshots -v DEBUG
 ```
