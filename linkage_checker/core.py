@@ -4,6 +4,7 @@ from datetime import datetime
 from pathlib import Path
 
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver import DesiredCapabilities
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
@@ -38,12 +39,14 @@ def run_linkage_checker_with_selenium(ngr_record, browser_screenshots):
     # simulating webpage interaction
     # click on the "Check new metadata" button
     browser.find_element_by_id('newMetadataBtn').click()
+    # this second .click() ensures that the button is properly clicked (a single click is apparently not enough)
+    browser.find_element_by_id('newMetadataBtn').click()
     if browser_screenshots:
         browser.save_screenshot(BROWSER_SCREENSHOT_PATH)
 
     # click on the three "URL to INSPIRE metadata" buttons
     element_present = expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, '#mdInputURL + label'))
-    WebDriverWait(browser, 10).until(element_present)
+    WebDriverWait(browser, 10, poll_frequency=1).until(element_present)
     browser.find_element_by_css_selector('#mdInputURL + label').click()
     browser.find_element_by_css_selector('#vwInputURL + label').click()
     browser.find_element_by_css_selector('#dwInputURL + label').click()
@@ -66,10 +69,17 @@ def run_linkage_checker_with_selenium(ngr_record, browser_screenshots):
     # https://pythonbasics.org/selenium-wait-for-page-to-load/
     # checking visibility of the resultsContainer element that indicates when the linkage checker is done
     element_present = expected_conditions.visibility_of_element_located((By.ID, 'resultsContainer'))
-    timeout = 14400  # (seconds) = 4 hours, is hopefully enough time for the linkage check...
-    # poll_frequency=5 seconds. the inspire linkage checker executes some ajax http requests every 5 seconds to
-    # check if the linkage check is done, so a faster poll_frequency is not really useful
-    WebDriverWait(browser, timeout, poll_frequency=5).until(element_present)
+    timeout_seconds = 1800  # = 0.5 hour, is hopefully enough time for the INSPIRE linkage checker doing its job and
+    # delivering results?
+    # poll_frequency=5 seconds. the INSPIRE linkage checker executes some ajax http requests every 5 seconds
+    # to its backend to check if the linkage check is done, so a faster poll_frequency is not really useful
+    try:
+        WebDriverWait(browser, timeout_seconds, poll_frequency=5).until(element_present)
+    except TimeoutException:
+        # if a TimeoutException happens, just move on (produces a negative test result)
+        logger.debug(
+            "TimeoutException with dataset: " + ngr_record['dataset_title'] + " (uuid_dataset = " + ngr_record[
+                'uuid_dataset'] + ")")
     if browser_screenshots:
         browser.save_screenshot(BROWSER_SCREENSHOT_PATH)
 
@@ -131,6 +141,11 @@ def run_linkage_checker_with_selenium(ngr_record, browser_screenshots):
     # get the evaluation report url
     linkage_check_results['evaluation_report_url'] = browser.find_element_by_id('resourceEvalReport').get_attribute(
         "href")
+    # if there has been an TimeoutException, let the user know and that therefore no evaluation report is available
+    if linkage_check_results['evaluation_report_url'] == 'https://inspire-geoportal.ec.europa.eu/linkagechecker.html#':
+        linkage_check_results[
+            'evaluation_report_url'] = 'Not available. The INSPIRE linkage check for this dataset was aborted, ' \
+                                       'because it took longer than half an hour. '
 
     logger.debug("done querying DOM retrieving linkage check results")
 
@@ -162,10 +177,12 @@ def main(output_path, enable_caching, browser_screenshots):
 
     all_ngr_records = get_all_ngr_records(enable_caching)
 
-    results = [run_linkage_checker_with_selenium(ngr_record, browser_screenshots) for ngr_record in
-               all_ngr_records]
-
-    write_output(output_path, start_time, results)
+    results = []
+    for ngr_record in all_ngr_records:
+        results.append(run_linkage_checker_with_selenium(ngr_record, browser_screenshots))
+        # save the results in the meantime, to prevent previous linkage
+        # checker results from being lost in a program crash
+        write_output(output_path, start_time, results)
 
 
 def write_output(output_path, start_time, results):
