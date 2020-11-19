@@ -32,3 +32,10 @@ coverage.xml
 
 # Docker
 docker-compose.override.yml
+/build/
+
+# Remaining
+Pipfile.lock
+browser-screenshot.png
+result
+build

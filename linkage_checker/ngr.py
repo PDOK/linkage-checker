@@ -16,9 +16,6 @@ from linkage_checker.constants import (
 
 logger = logging.getLogger(__name__)
 
-URL_NGR = "https://nationaalgeoregister.nl/geonetwork"
-
-
 def get_all_ngr_records(enable_caching):
     # if there is no cache file or it is expired, create it. otherwise read the cache file
     if not os.path.isfile(CACHE_FILENAME) or cache_is_expired() or not enable_caching:
