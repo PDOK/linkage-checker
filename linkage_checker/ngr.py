@@ -65,13 +65,18 @@ def __validate_consistancy(ngr_dataset_records):
 
 
 def validatie_identifiers(ngr_dataset_record, ngr_service_record):
-    for coupled_data in ngr_service_record["coupled_datasets"]:
-        if coupled_data["metadata_uuid"] == ngr_dataset_record["uuid"] and coupled_data["identifier"] != \
-                ngr_dataset_record["identifier"]:
-            warning = "mismatch in identifier (expected: {}, actual: {}) in NGR for dataset '{}' and service '{}', service link: https://nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{}".format(
-                ngr_dataset_record["identifier"], coupled_data["identifier"], ngr_dataset_record["title"],
-                ngr_service_record["title"], ngr_service_record["uuid"])
-            logger.warning(warning)
+    if not ngr_dataset_record["identifier"] or ngr_dataset_record["identifier"].startswith("\n"):
+        warning = "no identifier was resolved for dataset '{}'. link: https://nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{}.".format(
+            ngr_dataset_record["title"], ngr_dataset_record["uuid"])
+        logger.warning(warning)
+    else:
+        for coupled_data in ngr_service_record["coupled_datasets"]:
+            if coupled_data["metadata_uuid"] == ngr_dataset_record["uuid"] and coupled_data["identifier"] != \
+                    ngr_dataset_record["identifier"]:
+                warning = "mismatch in identifier (expected: {}, actual: {}) in NGR for dataset '{}' and service '{}', service link: https://nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{}".format(
+                    ngr_dataset_record["identifier"], coupled_data["identifier"], ngr_dataset_record["title"],
+                    ngr_service_record["title"], ngr_service_record["uuid"])
+                logger.warning(warning)
 
 
 def cache_is_expired():
