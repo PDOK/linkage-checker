@@ -246,16 +246,16 @@ def main(output_path, enable_caching, browser_screenshots):
     all_ngr_records = get_all_ngr_records(enable_caching)
 
     results = []
-    # number_off_ngr_records = len(all_ngr_records)
-    # for index in range(number_off_ngr_records):
-    #     ngr_record = all_ngr_records[index]
-    #     logger.info("%s/%s validating dataset %s", index+1, number_off_ngr_records, ngr_record["title"])
-    #     results.append(
-    #         run_linkage_checker_with_selenium(ngr_record, browser_screenshots)
-    #     )
-    #     # save the results in the meantime, to prevent previous linkage
-    #     # checker results from being lost in a program crash
-    #     write_output(output_path, start_time, results)
+    number_off_ngr_records = len(all_ngr_records)
+    for index in range(number_off_ngr_records):
+        ngr_record = all_ngr_records[index]
+        logger.info("%s/%s validating dataset %s", index+1, number_off_ngr_records, ngr_record["title"])
+        results.append(
+            run_linkage_checker_with_selenium(ngr_record, browser_screenshots)
+        )
+        # save the results in the meantime, to prevent previous linkage
+        # checker results from being lost in a program crash
+        write_output(output_path, start_time, results)
 
 
 def write_output(output_path, start_time, results):
