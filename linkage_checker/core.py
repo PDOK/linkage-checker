@@ -15,6 +15,7 @@ from linkage_checker.constants import (
     BROWSER_SCREENSHOT_PATH,
     LINKAGE_CHECKER_URL,
     REMOTE_WEBDRIVER_CONNECTION_URL,
+    TIMEOUT_SECONDS,
 )
 from linkage_checker.ngr import get_all_ngr_records
 
@@ -26,9 +27,9 @@ def run_linkage_checker_with_selenium(ngr_record, browser_screenshots):
 
     logger.debug(
         'starting linkage check with dataset "'
-        + ngr_record["dataset_title"]
+        + ngr_record["title"]
         + '" (uuid_dataset = '
-        + ngr_record["uuid_dataset"]
+        + ngr_record["uuid"]
         + ")"
     )
 
@@ -67,13 +68,13 @@ def run_linkage_checker_with_selenium(ngr_record, browser_screenshots):
 
     # filling in the three textareas with the correct urls to nationaalgeoregister.nl
     browser.find_element_by_id("dataMetadata").send_keys(
-        NGR_UUID_URL + ngr_record["uuid_dataset"]
+        NGR_UUID_URL + ngr_record["uuid"]
     )
     browser.find_element_by_id("viewServiceMetadata").send_keys(
-        NGR_UUID_URL + ngr_record["uuid_viewer"]
+        NGR_UUID_URL + ngr_record["view_service"]["uuid"]
     )
     browser.find_element_by_id("downloadServiceMetadata").send_keys(
-        NGR_UUID_URL + ngr_record["uuid_download"]
+        NGR_UUID_URL + ngr_record["download_service"]["uuid"]
     )
     if browser_screenshots:
         browser.save_screenshot(BROWSER_SCREENSHOT_PATH)
@@ -89,19 +90,19 @@ def run_linkage_checker_with_selenium(ngr_record, browser_screenshots):
     element_present = expected_conditions.visibility_of_element_located(
         (By.ID, "resultsContainer")
     )
-    timeout_seconds = 1800  # = 0.5 hour, is hopefully enough time for the INSPIRE linkage checker doing its job and
+    # timeout_seconds = 1800  # = 0.5 hour, is hopefully enough time for the INSPIRE linkage checker doing its job and
     # delivering results?
     # poll_frequency=5 seconds. the INSPIRE linkage checker executes some ajax http requests every 5 seconds
     # to its backend to check if the linkage check is done, so a faster poll_frequency is not really useful
     try:
-        WebDriverWait(browser, timeout_seconds, poll_frequency=5).until(element_present)
+        WebDriverWait(browser, TIMEOUT_SECONDS, poll_frequency=5).until(element_present)
     except TimeoutException:
         # if a TimeoutException happens, just move on (produces a negative test result)
         logger.debug(
             "TimeoutException with dataset: "
-            + ngr_record["dataset_title"]
+            + ngr_record["title"]
             + " (uuid_dataset = "
-            + ngr_record["uuid_dataset"]
+            + ngr_record["uuid"]
             + ")"
         )
     if browser_screenshots:
@@ -216,11 +217,11 @@ def run_linkage_checker_with_selenium(ngr_record, browser_screenshots):
 
     # storing ngr record information
     results = {
-        "dataset_title": ngr_record["dataset_title"],
-        "dataset_uuid": ngr_record["uuid_dataset"],
-        "endpoint_download_service": NGR_UUID_URL + ngr_record["uuid_download"],
-        "endpoint_view_service": NGR_UUID_URL + ngr_record["uuid_viewer"],
-        "endpoint_meta_data": NGR_UUID_URL + ngr_record["uuid_dataset"],
+        "dataset_title": ngr_record["title"],
+        "dataset_uuid": ngr_record["uuid"],
+        "endpoint_download_service": NGR_UUID_URL + ngr_record["download_service"]["uuid"],
+        "endpoint_view_service": NGR_UUID_URL + ngr_record["view_service"]["uuid"],
+        "endpoint_meta_data": NGR_UUID_URL + ngr_record["uuid"],
         "duration": str(datetime.now() - start_time),
         "linkage_check_results": linkage_check_results,
     }
@@ -236,22 +237,25 @@ def query_dom(browser, search_term, css_selector):
 
 
 def main(output_path, enable_caching, browser_screenshots):
-    logger.debug("output path = " + str(output_path))
-    logger.debug("caching enabled = " + str(enable_caching))
-    logger.debug("make browser screenshots = " + str(browser_screenshots))
+    logger.info("output path = " + str(output_path))
+    logger.info("caching enabled = " + str(enable_caching))
+    logger.info("make browser screenshots = " + str(browser_screenshots))
 
     start_time = datetime.now()
 
     all_ngr_records = get_all_ngr_records(enable_caching)
 
     results = []
-    for ngr_record in all_ngr_records:
-        results.append(
-            run_linkage_checker_with_selenium(ngr_record, browser_screenshots)
-        )
-        # save the results in the meantime, to prevent previous linkage
-        # checker results from being lost in a program crash
-        write_output(output_path, start_time, results)
+    # number_off_ngr_records = len(all_ngr_records)
+    # for index in range(number_off_ngr_records):
+    #     ngr_record = all_ngr_records[index]
+    #     logger.info("%s/%s validating dataset %s", index+1, number_off_ngr_records, ngr_record["title"])
+    #     results.append(
+    #         run_linkage_checker_with_selenium(ngr_record, browser_screenshots)
+    #     )
+    #     # save the results in the meantime, to prevent previous linkage
+    #     # checker results from being lost in a program crash
+    #     write_output(output_path, start_time, results)
 
 
 def write_output(output_path, start_time, results):

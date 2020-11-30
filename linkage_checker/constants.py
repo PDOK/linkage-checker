@@ -15,10 +15,17 @@ NAMESPACE_PREFIXES = {
     "gco": "http://www.isotc211.org/2005/gco",
     "gmx": "http://www.isotc211.org/2005/gmx",
     "ows": "http://www.opengis.net/ows",
+    "srv": "http://www.isotc211.org/2005/srv",
+    "xlink": "http://www.w3.org/1999/xlink",
 }
+
+
 
 LINKAGE_CHECKER_URL = "https://inspire-geoportal.ec.europa.eu/linkagechecker.html"
 
 BROWSER_SCREENSHOT_PATH = "../browser-screenshot.png"
 
 REMOTE_WEBDRIVER_CONNECTION_URL = "http://127.0.0.1:4444/wd/hub"
+
+# 5 uur
+TIMEOUT_SECONDS = 18000
