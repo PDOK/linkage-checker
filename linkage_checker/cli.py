@@ -42,16 +42,16 @@ def cli():
     ),
 )
 @click.option(
-    '--enable-caching',
+    "--enable-caching",
     is_flag=True,
     default=False,
-    help="Cache the NGR records in a local json file (useful for debugging purposes)."
+    help="Cache the NGR records in a local json file (useful for debugging purposes).",
 )
 @click.option(
-    '--browser-screenshots',
+    "--browser-screenshots",
     is_flag=True,
     default=False,
-    help="Take browser screenshots for debugging purposes."
+    help="Take browser screenshots for debugging purposes.",
 )
 @click_log.simple_verbosity_option(logger)
 def linkage_checker_command(output_path, enable_caching, browser_screenshots):

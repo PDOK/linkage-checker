@@ -73,7 +73,7 @@ In order to get nicely formatted python files without having to spend manual
 work on it, run the following command periodically:
 
 ```bash
-pipenv run black linkage-checker
+pipenv run black linkage_checker
 ```
 
 Run the tests regularly. This also checks with pyflakes, black and it reports

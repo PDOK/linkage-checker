@@ -1,0 +1,20 @@
+version: '2.4'
+services:
+  selenium:
+    image: selenium/standalone-firefox:3.141.59-20201010
+    ports:
+      - 4444:4444
+    volumes:
+    - /dev/shm:/dev/shm
+  linkage-checker:
+    image: linkage-checker:local
+#    build: .
+    entrypoint:
+      - --output-path /result/linkage_checker_results.json
+      - --browser-screenshot
+      - -v
+      - DEBUG
+    volumes:
+      - ./results:/results
+    depends_on:
+      - selenium
