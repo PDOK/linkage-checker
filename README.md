@@ -21,7 +21,7 @@ Options:
   --output-path PATH              Path to a json file where the linkage
                                   checker results will be stored.
 
-  --remote_selenium_url URL       Connection URL of the selenium (remote)
+  --remote-selenium-url URL       Connection URL of the selenium (remote)
                                   webdriver.
   
   --enable-caching                Cache the NGR records in a local
