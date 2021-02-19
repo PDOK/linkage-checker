@@ -21,6 +21,9 @@ Options:
   --output-path PATH              Path to a json file where the linkage
                                   checker results will be stored.
 
+  --remote-selenium-url URL       Connection URL of the selenium (remote)
+                                  webdriver.
+  
   --enable-caching                Cache the NGR records in a local
                                   json file (useful for debugging
                                   purposes).
@@ -28,6 +31,10 @@ Options:
   --browser-screenshots           Take browser screenshots for
                                   debugging purposes.
 
+  -d, --debug-mode                Enables debug mode which will run
+                                  tests for the first three NGR
+                                  records.
+                                  
   -v, --verbosity LVL             Either CRITICAL, ERROR, WARNING,
                                   INFO or DEBUG.
 
@@ -43,7 +50,7 @@ pipenv run linkage-checker --output-path /example/results.json
 
 With some debugging functionalities enabled:
 ```bash
-pipenv run linkage-checker --enable-caching --browser-screenshots -v DEBUG
+pipenv run linkage-checker --enable-caching --browser-screenshots -v DEBUG --debug-mode
 ```
 
 ## Development installation of this project itself

@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
+import pkg_resources
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver import DesiredCapabilities
@@ -14,7 +15,6 @@ from linkage_checker.constants import (
     NGR_UUID_URL,
     BROWSER_SCREENSHOT_PATH,
     LINKAGE_CHECKER_URL,
-    REMOTE_WEBDRIVER_CONNECTION_URL,
     TIMEOUT_SECONDS,
 )
 from linkage_checker.ngr import get_all_ngr_records
@@ -22,7 +22,9 @@ from linkage_checker.ngr import get_all_ngr_records
 logger = logging.getLogger(__name__)
 
 
-def run_linkage_checker_with_selenium(ngr_record, browser_screenshots):
+def run_linkage_checker_with_selenium(
+    ngr_record, browser_screenshots, remote_selenium_url
+):
     start_time = datetime.now()
 
     logger.debug(
@@ -35,7 +37,7 @@ def run_linkage_checker_with_selenium(ngr_record, browser_screenshots):
 
     logger.debug("connecting to remote Firefox browser (in docker container)...")
     browser = webdriver.Remote(
-        command_executor=REMOTE_WEBDRIVER_CONNECTION_URL,
+        command_executor=remote_selenium_url,
         desired_capabilities=DesiredCapabilities.FIREFOX,
     )
     logger.debug("connected!")
@@ -219,7 +221,8 @@ def run_linkage_checker_with_selenium(ngr_record, browser_screenshots):
     results = {
         "dataset_title": ngr_record["title"],
         "dataset_uuid": ngr_record["uuid"],
-        "endpoint_download_service": NGR_UUID_URL + ngr_record["download_service"]["uuid"],
+        "endpoint_download_service": NGR_UUID_URL
+        + ngr_record["download_service"]["uuid"],
         "endpoint_view_service": NGR_UUID_URL + ngr_record["view_service"]["uuid"],
         "endpoint_meta_data": NGR_UUID_URL + ngr_record["uuid"],
         "duration": str(datetime.now() - start_time),
@@ -236,22 +239,36 @@ def query_dom(browser, search_term, css_selector):
     ).get_attribute("data-icon")
 
 
-def main(output_path, enable_caching, browser_screenshots):
+def main(
+    output_path, remote_selenium_url, enable_caching, browser_screenshots, debug_mode
+):
     logger.info("output path = " + str(output_path))
+    logger.info("remote_selenium_url = " + str(remote_selenium_url))
     logger.info("caching enabled = " + str(enable_caching))
     logger.info("make browser screenshots = " + str(browser_screenshots))
+    logger.info("debug_mode = " + str(debug_mode))
 
     start_time = datetime.now()
 
     all_ngr_records = get_all_ngr_records(enable_caching)
 
+    if debug_mode:
+        all_ngr_records = all_ngr_records[:3]
+
     results = []
     number_off_ngr_records = len(all_ngr_records)
     for index in range(number_off_ngr_records):
         ngr_record = all_ngr_records[index]
-        logger.info("%s/%s validating dataset %s", index+1, number_off_ngr_records, ngr_record["title"])
+        logger.info(
+            "%s/%s validating dataset %s",
+            index + 1,
+            number_off_ngr_records,
+            ngr_record["title"],
+        )
         results.append(
-            run_linkage_checker_with_selenium(ngr_record, browser_screenshots)
+            run_linkage_checker_with_selenium(
+                ngr_record, browser_screenshots, remote_selenium_url
+            )
         )
         # save the results in the meantime, to prevent previous linkage
         # checker results from being lost in a program crash
@@ -259,17 +276,17 @@ def main(output_path, enable_caching, browser_screenshots):
 
 
 def write_output(output_path, start_time, results):
-    # script_version = pkg_resources.require("linkage_checker")[0].version
-    script_version = "0.1"
     end_time = datetime.now()
     duration = end_time - start_time
 
     json_output = json.dumps(
         {
-            "linkage_checker_version": script_version,
-            "start_time": start_time.strftime("%Y-%m-%d %H:%M:%S.%f"),
+            "linkage_checker_version": pkg_resources.require("linkage_checker")[
+                0
+            ].version,
+            "start_time": start_time.strftime("%d-%m-%Y %H:%M:%S"),
             "start_time_timestamp": start_time.timestamp(),
-            "end_time": end_time.strftime("%Y-%m-%d %H:%M:%S.%f"),
+            "end_time": end_time.strftime("%d-%m-%Y %H:%M:%S"),
             "end_time_timestamp": end_time.timestamp(),
             "total_duration": str(duration),
             "linkage_checker_endpoint": LINKAGE_CHECKER_URL,

@@ -19,6 +19,7 @@ CONFORMANCE_INSPIRE_DATA_SPEC_TITLE = "INSPIRE Data Specification on"
 
 logger = logging.getLogger(__name__)
 
+
 def get_all_ngr_records(enable_caching):
     # if there is no cache file or it is expired, create it. otherwise read the cache file
     if not os.path.isfile(CACHE_FILENAME) or cache_is_expired() or not enable_caching:
@@ -31,11 +32,11 @@ def get_all_ngr_records(enable_caching):
 
         ngr_records_to_remove = []
         for ngr_record in ngr_dataset_records:
-            record_info = get_ngr_record_info(
-                ngr_record["uuid"], ngr_service_records
-            )
+            record_info = get_ngr_record_info(ngr_record["uuid"], ngr_service_records)
             if len(record_info) == 1:
-                warning = "only one PDOK service is coupled to datasets {}".format(ngr_record["title"])
+                warning = "only one PDOK service is coupled to datasets {}".format(
+                    ngr_record["title"]
+                )
                 logger.warning(warning)
             if len(record_info) != 2:
                 ngr_records_to_remove.append(ngr_record)
@@ -45,7 +46,6 @@ def get_all_ngr_records(enable_caching):
 
         for ngr_record_to_remove in ngr_records_to_remove:
             ngr_dataset_records.remove(ngr_record_to_remove)
-
 
         if enable_caching:
             logger.debug("writing all ngr record data to cache file " + CACHE_FILENAME)
@@ -58,24 +58,36 @@ def get_all_ngr_records(enable_caching):
     __validate_consistancy(ngr_dataset_records)
     return ngr_dataset_records
 
+
 def __validate_consistancy(ngr_dataset_records):
     for ngr_dataset_record in ngr_dataset_records:
         validatie_identifiers(ngr_dataset_record, ngr_dataset_record["view_service"])
-        validatie_identifiers(ngr_dataset_record, ngr_dataset_record["download_service"])
+        validatie_identifiers(
+            ngr_dataset_record, ngr_dataset_record["download_service"]
+        )
 
 
 def validatie_identifiers(ngr_dataset_record, ngr_service_record):
-    if not ngr_dataset_record["identifier"] or ngr_dataset_record["identifier"].startswith("\n"):
+    if not ngr_dataset_record["identifier"] or ngr_dataset_record[
+        "identifier"
+    ].startswith("\n"):
         warning = "no identifier was resolved for dataset '{}'. link: https://nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{}.".format(
-            ngr_dataset_record["title"], ngr_dataset_record["uuid"])
+            ngr_dataset_record["title"], ngr_dataset_record["uuid"]
+        )
         logger.warning(warning)
     else:
         for coupled_data in ngr_service_record["coupled_datasets"]:
-            if coupled_data["metadata_uuid"] == ngr_dataset_record["uuid"] and coupled_data["identifier"] != \
-                    ngr_dataset_record["identifier"]:
+            if (
+                coupled_data["metadata_uuid"] == ngr_dataset_record["uuid"]
+                and coupled_data["identifier"] != ngr_dataset_record["identifier"]
+            ):
                 warning = "mismatch in identifier (expected: {}, actual: {}) in NGR for dataset '{}' and service '{}', service link: https://nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{}".format(
-                    ngr_dataset_record["identifier"], coupled_data["identifier"], ngr_dataset_record["title"],
-                    ngr_service_record["title"], ngr_service_record["uuid"])
+                    ngr_dataset_record["identifier"],
+                    coupled_data["identifier"],
+                    ngr_dataset_record["title"],
+                    ngr_service_record["title"],
+                    ngr_service_record["uuid"],
+                )
                 logger.warning(warning)
 
 
@@ -155,13 +167,16 @@ def get_ngr_record_info(uuid_dataset, ngr_service_records):
     items = document.iter("item")
     for item in items:
         service_uuid = item.find("id").text
-        ngr_service_record = __find_in_service_records(service_uuid, ngr_service_records)
+        ngr_service_record = __find_in_service_records(
+            service_uuid, ngr_service_records
+        )
         if ngr_service_record is not None:
             if ngr_service_record["service_type"] == "view":
                 result["view_service"] = ngr_service_record
             if ngr_service_record["service_type"] == "download":
                 result["download_service"] = ngr_service_record
     return result
+
 
 def __enrich_ngr_dataset_record(ngr_data_record):
     response = __get_full_ngr_record(ngr_data_record["uuid"])
@@ -177,32 +192,51 @@ def __enrich_ngr_dataset_record(ngr_data_record):
             NAMESPACE_PREFIXES,
         )
     else:
-        ngr_data_record["identifier_namespace"] = identifier_element.get("{{{}}}href".format(NAMESPACE_PREFIXES["xlink"]))
+        ngr_data_record["identifier_namespace"] = identifier_element.get(
+            "{{{}}}href".format(NAMESPACE_PREFIXES["xlink"])
+        )
     ngr_data_record["identifier"] = identifier_element.text
 
     conform_1089_2010_pass = document.find(
         './/gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:specification/gmd:CI_Citation/gmd:title/*[.="{}"]/../../../../gmd:pass/gco:Boolean'.format(
-            CONFORMANCE_1089_2010_TITLE),
-        NAMESPACE_PREFIXES)
-    conform_1089_2010 = (conform_1089_2010_pass is not None and conform_1089_2010_pass.text == 'true')
+            CONFORMANCE_1089_2010_TITLE
+        ),
+        NAMESPACE_PREFIXES,
+    )
+    conform_1089_2010 = (
+        conform_1089_2010_pass is not None and conform_1089_2010_pass.text == "true"
+    )
     ngr_data_record["harmonized"] = conform_1089_2010
 
-    conformance_titles = document.findall(".//gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:specification/gmd:CI_Citation/gmd:title/*",
-                     NAMESPACE_PREFIXES)
+    conformance_titles = document.findall(
+        ".//gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:specification/gmd:CI_Citation/gmd:title/*",
+        NAMESPACE_PREFIXES,
+    )
     for conformance_title in conformance_titles:
-        if conformance_title.text is not None and CONFORMANCE_INSPIRE_DATA_SPEC_TITLE in conformance_title.text:
+        if (
+            conformance_title.text is not None
+            and CONFORMANCE_INSPIRE_DATA_SPEC_TITLE in conformance_title.text
+        ):
             ngr_data_record["conformance_data_spec"] = conformance_title.text
             break
         else:
-            ref = conformance_title.get("{{{}}}href".format(NAMESPACE_PREFIXES["xlink"]))
-            if ref is not None and ref.startswith("http://inspire.ec.europa.eu/id/document/tg"):
+            ref = conformance_title.get(
+                "{{{}}}href".format(NAMESPACE_PREFIXES["xlink"])
+            )
+            if ref is not None and ref.startswith(
+                "http://inspire.ec.europa.eu/id/document/tg"
+            ):
                 ngr_data_record["conformance_data_spec"] = conformance_title.text
                 break
 
-
-    inspire_theme_element = document.find(".//gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title[gmx:Anchor='GEMET - INSPIRE themes, version 1.0' ]/../../../gmd:keyword/gmx:Anchor", NAMESPACE_PREFIXES)
+    inspire_theme_element = document.find(
+        ".//gmd:descriptiveKeywords/gmd:MD_Keywords/gmd:thesaurusName/gmd:CI_Citation/gmd:title[gmx:Anchor='GEMET - INSPIRE themes, version 1.0' ]/../../../gmd:keyword/gmx:Anchor",
+        NAMESPACE_PREFIXES,
+    )
     if inspire_theme_element is not None:
-        ngr_data_record["inspire_keyword_url"] = inspire_theme_element.attrib["{{{}}}href".format(NAMESPACE_PREFIXES["xlink"])]
+        ngr_data_record["inspire_keyword_url"] = inspire_theme_element.attrib[
+            "{{{}}}href".format(NAMESPACE_PREFIXES["xlink"])
+        ]
         ngr_data_record["inspire_keyword"] = inspire_theme_element.text
 
 
@@ -228,29 +262,43 @@ def __enrich_ngr_service_records(ngr_service_records):
         ).text
 
         ngr_record["coupled_datasets"] = []
-        for operates_on in document.findall(".//srv:SV_ServiceIdentification/srv:operatesOn", NAMESPACE_PREFIXES):
+        for operates_on in document.findall(
+            ".//srv:SV_ServiceIdentification/srv:operatesOn", NAMESPACE_PREFIXES
+        ):
             href = operates_on.get("{{{}}}href".format(NAMESPACE_PREFIXES["xlink"]))
-            dataset_metadata_uuid = __get_request_parameter_value(href, "id").split("#", 1)[0]
+            dataset_metadata_uuid = __get_request_parameter_value(href, "id").split(
+                "#", 1
+            )[0]
             dataset_identifier = operates_on.get("uuidref")
-            dataset = {"metadata_uuid": dataset_metadata_uuid, "identifier": dataset_identifier}
+            dataset = {
+                "metadata_uuid": dataset_metadata_uuid,
+                "identifier": dataset_identifier,
+            }
             ngr_record["coupled_datasets"].append(dataset)
 
         ngr_record["service_type"] = service_type
         ngr_record["service_access_point"] = service_access_point
         if not __is_quality_conformance_met(document):
-            warning = "not all quality conformances are met for service {} ref:https://nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{}".format(ngr_record["title"], ngr_record["uuid"])
+            warning = "not all quality conformances are met for service {} ref:https://nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/{}".format(
+                ngr_record["title"], ngr_record["uuid"]
+            )
             logger.warning(warning)
 
 
 def __get_full_ngr_record(uuid):
-    record_info_base_url = "{}/srv/dut/csw?service=CSW&request=GetRecordById&version=2.0.2&outputSchema=http://www.isotc211.org/2005/gmd&elementSetName=full&id={}#MD_DataIdentification ".format(NGR_BASE_URL, uuid)
+    record_info_base_url = "{}/srv/dut/csw?service=CSW&request=GetRecordById&version=2.0.2&outputSchema=http://www.isotc211.org/2005/gmd&elementSetName=full&id={}#MD_DataIdentification ".format(
+        NGR_BASE_URL, uuid
+    )
     logger.info("fetching record_info_base_url: " + record_info_base_url)
     response = requests.get(record_info_base_url, headers=REQUEST_HEADERS)
     return response
 
 
 def __is_quality_conformance_met(document):
-    for conformance_result in document.findall(".//gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:pass/gco:Boolean", NAMESPACE_PREFIXES):
+    for conformance_result in document.findall(
+        ".//gmd:DQ_DomainConsistency/gmd:result/gmd:DQ_ConformanceResult/gmd:pass/gco:Boolean",
+        NAMESPACE_PREFIXES,
+    ):
         if conformance_result.text != "true":
             return False
     return True
