@@ -20,7 +20,6 @@ NAMESPACE_PREFIXES = {
 }
 
 
-
 LINKAGE_CHECKER_URL = "https://inspire-geoportal.ec.europa.eu/linkagechecker.html"
 
 BROWSER_SCREENSHOT_PATH = "../browser-screenshot.png"

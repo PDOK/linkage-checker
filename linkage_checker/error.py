@@ -1,3 +1,2 @@
 class AppError(Exception):
-    """Class for handling application errrors.
-    """
+    """Class for handling application errrors."""

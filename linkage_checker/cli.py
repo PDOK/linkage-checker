@@ -7,6 +7,8 @@ import click
 import click_log
 
 # Setup logging before package imports.
+from linkage_checker.constants import REMOTE_WEBDRIVER_CONNECTION_URL
+
 logger = logging.getLogger(__name__)
 click_log.basic_config(logger)
 
@@ -42,6 +44,12 @@ def cli():
     ),
 )
 @click.option(
+    "--remote-selenium-url",
+    required=False,
+    default=REMOTE_WEBDRIVER_CONNECTION_URL,
+    help="Connection URL of the selenium (remote) webdriver.",
+)
+@click.option(
     "--enable-caching",
     is_flag=True,
     default=False,
@@ -53,12 +61,27 @@ def cli():
     default=False,
     help="Take browser screenshots for debugging purposes.",
 )
+@click.option(
+    "-d",
+    "--debug-mode",
+    is_flag=True,
+    default=False,
+    help="Enables debug mode which will run tests for the first three NGR records.",
+)
 @click_log.simple_verbosity_option(logger)
-def linkage_checker_command(output_path, enable_caching, browser_screenshots):
+def linkage_checker_command(
+    output_path, remote_selenium_url, enable_caching, browser_screenshots, debug_mode
+):
     set_log_level()
 
     try:
-        main(output_path, enable_caching, browser_screenshots)
+        main(
+            output_path,
+            remote_selenium_url,
+            enable_caching,
+            browser_screenshots,
+            debug_mode,
+        )
     except AppError:
         logger.exception("linkage-checker failed:")
         sys.exit(1)
