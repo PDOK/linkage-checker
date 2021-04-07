@@ -2,7 +2,7 @@ from configparser import ConfigParser
 
 from setuptools import setup, find_packages
 
-version = "0.1.dev0"
+version = "0.3.dev0"
 
 long_description = "\n\n".join([open("README.md").read(), open("CHANGES.md").read()])
 
