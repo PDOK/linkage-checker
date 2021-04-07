@@ -48,7 +48,7 @@ def main(
         start_time_detail = datetime.now()
 
         try:
-            result = run_linkage_checker_with_selenium(ngr_record, browser_screenshots, remote_selenium_url, start_time_detail)
+            result = run_linkage_checker_with_selenium(ngr_record, browser_screenshots, remote_selenium_url, start_time_detail, debug_mode)
         except Exception:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             trace = [t.strip("\n") for t in traceback.format_exception(exc_type, exc_value, exc_traceback)]

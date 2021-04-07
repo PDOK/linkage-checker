@@ -8,7 +8,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 
-from linkage_checker.constants import LINKAGE_CHECKER_URL, BROWSER_SCREENSHOT_PATH, NGR_UUID_URL, TIMEOUT_SECONDS
+from linkage_checker.constants import LINKAGE_CHECKER_URL, BROWSER_SCREENSHOT_PATH, NGR_UUID_URL, TIMEOUT_SECONDS, \
+    TIMEOUT_SECONDS_DEBUG_MODE
+
 logger = logging.getLogger(__name__)
 
 def query_dom(browser, search_term, css_selector):
@@ -18,7 +20,7 @@ def query_dom(browser, search_term, css_selector):
 
 
 def run_linkage_checker_with_selenium(
-    ngr_record, browser_screenshots, remote_selenium_url, start_time
+    ngr_record, browser_screenshots, remote_selenium_url, start_time, debug_mode
 ):
     logger.debug(
         'starting linkage check with dataset "'
@@ -90,7 +92,7 @@ def run_linkage_checker_with_selenium(
     # poll_frequency=5 seconds. the INSPIRE linkage checker executes some ajax http requests every 5 seconds
     # to its backend to check if the linkage check is done, so a faster poll_frequency is not really useful
     try:
-        WebDriverWait(browser, TIMEOUT_SECONDS, poll_frequency=5).until(element_present)
+        WebDriverWait(browser, TIMEOUT_SECONDS if not debug_mode else TIMEOUT_SECONDS_DEBUG_MODE, poll_frequency=5).until(element_present)
     except TimeoutException:
         # if a TimeoutException happens, just move on (produces a negative test result)
         logger.debug(
