@@ -68,9 +68,15 @@ def cli():
     default=False,
     help="Enables debug mode which will run tests for the first three NGR records.",
 )
+@click.option(
+    "--uuid",
+    required=False,
+    multiple=True,
+    help="Specify uuid of datasets to validate."
+)
 @click_log.simple_verbosity_option(logger)
 def linkage_checker_command(
-    output_path, remote_selenium_url, enable_caching, browser_screenshots, debug_mode
+    output_path, remote_selenium_url, enable_caching, browser_screenshots, debug_mode, uuid
 ):
     set_log_level()
 
@@ -81,6 +87,7 @@ def linkage_checker_command(
             enable_caching,
             browser_screenshots,
             debug_mode,
+            uuid,
         )
     except AppError:
         logger.exception("linkage-checker failed:")
