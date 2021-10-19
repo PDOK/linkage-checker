@@ -36,13 +36,17 @@ def main(
 
     results = []
     number_off_ngr_records = len(all_ngr_records)
+
+    logger.info("number of ngr records found: %d", number_off_ngr_records)
+
     for index in range(number_off_ngr_records):
         ngr_record = all_ngr_records[index]
         logger.info(
-            "%s/%s validating dataset %s",
+            "%s/%s validating dataset %s (%s)",
             index + 1,
             number_off_ngr_records,
             ngr_record["title"],
+            ngr_record["uuid"]
         )
 
         start_time_detail = datetime.now()
@@ -65,7 +69,11 @@ def main(
                 "linkage_check_results": None
             }
 
-            logger.debug(trace)
+            logger.error(
+                "failed to validate dataset %s (%s): %s",
+                ngr_record["title"],
+                ngr_record["uuid"],
+                trace)
 
         results.append(result)
 
