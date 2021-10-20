@@ -19,13 +19,17 @@ logger = logging.getLogger(__name__)
 
 
 def main(
-    output_path, remote_selenium_url, enable_caching, browser_screenshots, debug_mode
+    output_path, remote_selenium_url, enable_caching, browser_screenshots, debug_mode, uuid
 ):
     logger.info("output path = " + str(output_path))
     logger.info("remote_selenium_url = " + str(remote_selenium_url))
     logger.info("caching enabled = " + str(enable_caching))
     logger.info("make browser screenshots = " + str(browser_screenshots))
     logger.info("debug_mode = " + str(debug_mode))
+    if uuid:
+        logger.info("uuid = " + ', '.join(uuid))
+    else:
+        logger.info("uuid = None")
 
     start_time = datetime.now()
 
@@ -36,13 +40,33 @@ def main(
 
     results = []
     number_off_ngr_records = len(all_ngr_records)
+
+    logger.info("number of ngr records found: %d", number_off_ngr_records)
+
+    if uuid:
+        only_uuids = set(uuid)
+    else:
+        only_uuids = None
+
     for index in range(number_off_ngr_records):
         ngr_record = all_ngr_records[index]
+
+        if only_uuids and not ngr_record["uuid"] in only_uuids:
+            logger.info(
+                "%s/%s skipping dataset %s (%s)",
+                index + 1,
+                number_off_ngr_records,
+                ngr_record["title"],
+                ngr_record["uuid"]
+            )
+            continue
+
         logger.info(
-            "%s/%s validating dataset %s",
+            "%s/%s validating dataset %s (%s)",
             index + 1,
             number_off_ngr_records,
             ngr_record["title"],
+            ngr_record["uuid"]
         )
 
         start_time_detail = datetime.now()
@@ -65,7 +89,11 @@ def main(
                 "linkage_check_results": None
             }
 
-            logger.debug(trace)
+            logger.error(
+                "failed to validate dataset %s (%s): %s",
+                ngr_record["title"],
+                ngr_record["uuid"],
+                trace)
 
         results.append(result)
 
