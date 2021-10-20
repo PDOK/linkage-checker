@@ -21,22 +21,10 @@ RUN pip install --no-cache-dir pipenv
 WORKDIR /code
 COPY . /code
 
-# Install packages, including the dev (test) packages.
+# Install packages
 RUN PIPENV_VENV_IN_PROJECT=1 pipenv --three
 RUN pipenv lock
-RUN pipenv sync --dev
-
-# Run pytest tests.
-# pipenv check fails due to a github connection error. Pipenv check scans for python
-# vulnerabilities amongst other things. We might want to debug and fix this:
-# RUN PIPENV_PYUP_API_KEY="" pipenv check &&
-#RUN pipenv run pytest
-
-# Cleanup test packages. We want to use pipenv uninstall --all-dev but that command is
-# broken. See: https://github.com/pypa/pipenv/issues/3722
-RUN pipenv --rm && \
-    PIPENV_VENV_IN_PROJECT=1 pipenv --three && \
-    pipenv sync
+RUN pipenv sync
 
 WORKDIR /code
 
