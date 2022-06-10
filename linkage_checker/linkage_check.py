@@ -44,8 +44,22 @@ def run_linkage_checker_with_selenium(
     browser.get(LINKAGE_CHECKER_URL)
     logger.debug("webpage " + browser.current_url + " loaded")
 
+    if browser_screenshots:
+        browser.save_screenshot(BROWSER_SCREENSHOT_PATH)
+
+    # accept coockies (if requested)
+    #
+    element = browser.find_element_by_css_selector("a.wt-link.cck-actions-button.ea_ignore")
+    if element:
+        element.click()
+        browser.find_element_by_css_selector("div.cck-actions a.wt-link").click()
+
+    if browser_screenshots:
+        browser.save_screenshot(BROWSER_SCREENSHOT_PATH)
+
     # simulating webpage interaction
     # click on the "Check new metadata" button
+    #
     browser.find_element_by_id("newMetadataBtn").click()
     # this second .click() ensures that the button is properly clicked (a single click is apparently not enough)
     browser.find_element_by_id("newMetadataBtn").click()
