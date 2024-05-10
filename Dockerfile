@@ -22,7 +22,7 @@ WORKDIR /code
 COPY . /code
 
 # Install packages
-RUN PIPENV_VENV_IN_PROJECT=1 pipenv --three
+RUN PIPENV_VENV_IN_PROJECT=1 pipenv install
 RUN pipenv lock
 RUN pipenv sync
 

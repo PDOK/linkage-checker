@@ -8,12 +8,13 @@ services:
     - /dev/shm:/dev/shm
   linkage-checker:
     image: linkage-checker:local
+    user: root
 #    build: .
-    entrypoint:
-      - --output-path /result/linkage_checker_results.json
-      - --browser-screenshot
-      - -v
-      - DEBUG
+    command:
+      - "--output-path /results/linkage_checker_results.json"
+      - "--browser-screenshots"
+      - "-v"
+      - "DEBUG"
     volumes:
       - ./results:/results
     depends_on:
