@@ -1,3 +1,7 @@
+# DEPRECATED
+
+This project is deprecated because the inspire linkage checker is not available any more: https://github.com/INSPIRE-MIF/helpdesk-geoportal/issues/153
+
 # linkage-checker
 Python wrapper that runs the [INSPIRE linkage checker](https://inspire-geoportal.ec.europa.eu/linkagechecker.html) and aggregates the results. _This is a proof of concept. It is tested with the INSPIRE linkage checker version: [1.4.0](https://inspire-geoportal.ec.europa.eu/release-notes.html)_
 
