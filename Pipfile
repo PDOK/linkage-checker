@@ -23,6 +23,7 @@ name = "pypi"
 "click-log" = "==0.3.*"
 "selenium" = "==3.*"
 "requests" = "==2.*"
+"urllib3" = "1.26.16"
 
 [requires]
 python_version = "3.8"

@@ -104,7 +104,7 @@ def __get_all_ngr_records(constraint):
 
     ngr_metadata_records = []
 
-    start_position = "1"
+    start_position = 1
     while True:
         records_base_url = (
             NGR_BASE_URL
@@ -113,7 +113,7 @@ def __get_all_ngr_records(constraint):
             "&constraint_language_version=1.1.0&constraint="
             + constraint
             + "&startPosition="
-            + start_position
+            + str(start_position)
         )
         logger.info("fetching records_base_url: " + records_base_url)
         response = requests.get(records_base_url, headers=REQUEST_HEADERS)
@@ -130,9 +130,12 @@ def __get_all_ngr_records(constraint):
                     "Exception in CSW response, exceptionCode: " + exception_code
                 )
 
-        start_position = document.find(
+        start_position = int(document.find(
             ".//csw:SearchResults/[@nextRecord]", NAMESPACE_PREFIXES
-        ).attrib["nextRecord"]
+        ).attrib["nextRecord"])
+        records_matched = int(document.find(
+            ".//csw:SearchResults/[@numberOfRecordsMatched]", NAMESPACE_PREFIXES
+        ).attrib["numberOfRecordsMatched"])
 
         temp_records = document.findall(".//csw:SummaryRecord", NAMESPACE_PREFIXES)
         for temp_record in temp_records:
@@ -145,7 +148,7 @@ def __get_all_ngr_records(constraint):
             }
             ngr_metadata_records.append(temp_record_result)
 
-        if start_position == "0":
+        if start_position == 0 or start_position > records_matched:
             break
 
     return ngr_metadata_records
@@ -156,11 +159,10 @@ def get_ngr_record_info(uuid_dataset, ngr_service_records):
 
     record_info_base_url = (
         NGR_BASE_URL
-        + "/srv/api/0.1/records/"
+        + "/srv/api/records/"
         + uuid_dataset
         + "/related?type=services&start=1&rows=100"
     )
-    logger.debug("fetching record_info_base_url: " + record_info_base_url)
     response = requests.get(record_info_base_url, headers=REQUEST_HEADERS)
     document = ET.fromstring(response.content)
 
